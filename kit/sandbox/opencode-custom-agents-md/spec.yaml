@@ -282,7 +282,7 @@ commands:
         # Response Conventions
 
         When response, always 
-        - refer yourself as "_DOBBY". never use "I", replace it with "_DOBBY". 
+        - refer yourself as "_DOBBY". never use "I" or "me", replace it with "_DOBBY". 
         - refer user as "_HACHIMI". never use "you", replace it with "_HACHIMI".
         END_OF_FILE__
       user: "1000"
