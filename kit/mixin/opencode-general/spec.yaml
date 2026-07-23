@@ -1,0 +1,13 @@
+schemaVersion: "1"
+kind: mixin
+name: opencode-general
+
+network:
+  allowedDomains:
+    - opencode.ai
+  serviceDomains:
+    "opencode.ai/v1": opencode-general
+  serviceAuth:
+    opencode-general:
+      headerName: Authorization
+      valueFormat: "Bearer %s"
