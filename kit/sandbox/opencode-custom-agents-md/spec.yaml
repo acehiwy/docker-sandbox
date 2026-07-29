@@ -248,37 +248,6 @@ commands:
         because it is included in the shell's "no proxy" configuration. For direct access to container ports,
         you must add the container's network to the "no proxy" configuration.
 
-        ### .NET Aspire: IPv6 loopback (`[::1]`) and the proxy
-
-        .NET Aspire's DCP (Developer Control Plane) addresses its local services using the **bracketed** IPv6
-        loopback literal `http://[::1]:<port>`, and it matches the `NO_PROXY` environment variable against that
-        exact bracketed form. The sandbox's `NO_PROXY` bypasses loopback using the unbracketed `::1` (which
-        almost every other client honours), so Aspire's calls to `[::1]` get sent to the proxy — which cannot
-        reach the sandbox's own loopback — and fail, usually with a `502`.
-
-        If you are running Aspire (`aspire run` / `aspire start`) and see `502`s or DCP errors reaching `[::1]`,
-        add the bracketed loopback to `NO_PROXY` for the sandbox. Use this idempotent snippet so it persists
-        across shells without the value growing on every command:
-
-        ```bash
-        cat >> /etc/sandbox-persistent.sh <<'EOF'
-        # Guarded by a marker variable (not a pattern match on NO_PROXY itself) so that
-        # re-sourcing this file before every command stays idempotent and never appends
-        # [::1] more than once. Avoiding a glob/regex on the value also sidesteps the
-        # very bracket-as-character-class hazard this entry is about.
-        if [ -z "${SBX_ASPIRE_NOPROXY_DONE:-}" ]; then
-          export NO_PROXY="${NO_PROXY:+$NO_PROXY,}[::1]"
-          export no_proxy="$NO_PROXY"
-          export SBX_ASPIRE_NOPROXY_DONE=1
-        fi
-        EOF
-        ```
-
-        Only do this for .NET/Aspire workloads. The bracketed literal is deliberately left out of the default
-        `NO_PROXY` because some other clients (notably the Azure DevOps MCP's HTTP layer, `typed-rest-client`)
-        parse `NO_PROXY` entries as **regular expressions**, where `[::1]` is a character class that matches
-        every host and would disable the proxy entirely — breaking credential injection for all services.
-
         # Response Conventions
 
         ACTIVE EVERY RESPONSE. No revert after many turns. Still active if unsure. 
