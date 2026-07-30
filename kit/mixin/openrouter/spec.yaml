@@ -1,0 +1,14 @@
+schemaVersion: "1"
+kind: mixin
+name: openrouter-template
+
+network:
+  allowedDomains:
+    - openrouter.ai
+  serviceDomains:
+    openrouter.ai: openrouter-template
+  serviceAuth:
+    openrouter-template:
+      headerName: Authorization
+      valueFormat: "Bearer %s"
+      
