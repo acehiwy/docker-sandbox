@@ -1,0 +1,16 @@
+schemaVersion: "1"
+kind: mixin
+name: socat-forward-port
+
+
+commands:
+  install:
+    - command: "sudo apt update && sudo apt install -y socat"
+  startup:
+    - command: ["socat", "TCP-LISTEN:23001,fork,bind=127.0.0.1", "TCP:host.docker.internal:23001"]
+      background: true
+
+network:
+  allowedDomains:
+    - 127.0.0.1:23001
+
