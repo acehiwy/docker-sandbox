@@ -142,15 +142,15 @@ IP stack (IPv4-only, IPv6-only, or dual-stack) but the detection can be wrong.
 
 To diagnose:
 1. Check which IP versions the host has by looking for non-loopback, non-link-local addresses:
-   - macOS: `ifconfig | grep 'inet '` (IPv4) and `ifconfig | grep 'inet6 '` (IPv6, ignore fe80::)
-   - Linux: `ip -4 addr show scope global` and `ip -6 addr show scope global`
-   - Windows (PowerShell): `Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.PrefixOrigin -ne 'WellKnown' }` and `Get-NetIPAddress -AddressFamily IPv6 | Where-Object { $_.PrefixOrigin -ne 'WellKnown
+  - macOS: `ifconfig | grep 'inet '` (IPv4) and `ifconfig | grep 'inet6 '` (IPv6, ignore fe80::)
+  - Linux: `ip -4 addr show scope global` and `ip -6 addr show scope global`
+  - Windows (PowerShell): `Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.PrefixOrigin -ne 'WellKnown' }` and `Get-NetIPAddress -AddressFamily IPv6 | Where-Object { $_.PrefixOrigin -ne 'WellKnown
 ' -and $_.SuffixOrigin -ne 'Link' }`
 2. If the host is IPv6-only but the proxy is trying IPv4 (or vice versa), ask the user to set the
-   `DOCKER_SANDBOXES_IP_STACK` environment variable before starting sandboxd. Valid values:
-   - `ipv4only` — only use IPv4 for upstream connections
-   - `ipv6only` — only use IPv6 for upstream connections
-   - `dual-stack` — try both using happy-eyeballs (see below)
+  `DOCKER_SANDBOXES_IP_STACK` environment variable before starting sandboxd. Valid values:
+  - `ipv4only` — only use IPv4 for upstream connections
+  - `ipv6only` — only use IPv6 for upstream connections
+  - `dual-stack` — try both using happy-eyeballs (see below)
 
 **Slow connections with dual-stack:** If the proxy detects `dual-stack` but one protocol doesn't
 actually have upstream connectivity (e.g. the host has IPv6 addresses but no working IPv6 route),
@@ -218,39 +218,12 @@ You have access to a Docker daemon in this environment. You can access published
 because it is included in the shell's "no proxy" configuration. For direct access to container ports,
 you must add the container's network to the "no proxy" configuration.
 
-### .NET Aspire: IPv6 loopback (`[::1]`) and the proxy
-
-.NET Aspire's DCP (Developer Control Plane) addresses its local services using the **bracketed** IPv6
-loopback literal `http://[::1]:<port>`, and it matches the `NO_PROXY` environment variable against that
-exact bracketed form. The sandbox's `NO_PROXY` bypasses loopback using the unbracketed `::1` (which
-almost every other client honours), so Aspire's calls to `[::1]` get sent to the proxy — which cannot
-reach the sandbox's own loopback — and fail, usually with a `502`.
-
-If you are running Aspire (`aspire run` / `aspire start`) and see `502`s or DCP errors reaching `[::1]`,
-add the bracketed loopback to `NO_PROXY` for the sandbox. Use this idempotent snippet so it persists
-across shells without the value growing on every command:
-
-```bash
-cat >> /etc/sandbox-persistent.sh <<'EOF'
-# Guarded by a marker variable (not a pattern match on NO_PROXY itself) so that
-# re-sourcing this file before every command stays idempotent and never appends
-# [::1] more than once. Avoiding a glob/regex on the value also sidesteps the
-# very bracket-as-character-class hazard this entry is about.
-if [ -z "${SBX_ASPIRE_NOPROXY_DONE:-}" ]; then
-  export NO_PROXY="${NO_PROXY:+$NO_PROXY,}[::1]"
-  export no_proxy="$NO_PROXY"
-  export SBX_ASPIRE_NOPROXY_DONE=1
-fi
-EOF
-```
-
-Only do this for .NET/Aspire workloads. The bracketed literal is deliberately left out of the default
-`NO_PROXY` because some other clients (notably the Azure DevOps MCP's HTTP layer, `typed-rest-client`)
-parse `NO_PROXY` entries as **regular expressions**, where `[::1]` is a character class that matches
-every host and would disable the proxy entirely — breaking credential injection for all services.
-
 # Response Conventions
 
-When response, always 
-- refer yourself as "_DOBBY". never use "I", replace it with "_DOBBY". 
+ACTIVE EVERY RESPONSE. No revert after many turns. Still active if unsure. 
+
+When output respond or ouput thinking, always 
+- refer yourself as "_DOBBY". never use "I" or "me", replace it with "_DOBBY". 
 - refer user as "_HACHIMI". never use "you", replace it with "_HACHIMI".
+- start with `_DOBBY replying` when answering
+- start with `_DOBBY thinking` when thinking
