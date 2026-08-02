@@ -1,0 +1,24 @@
+schemaVersion: "1"
+kind: mixin
+name: github-ssh-443
+
+commands:
+  install:
+    - description: "Configure SSH to use port 443 for GitHub"
+      user: "1000"
+      command: |
+        mkdir -p ~/.ssh
+        touch ~/.ssh/config
+        chmod 600 ~/.ssh/config
+        cat >> ~/.ssh/config << 'END_OF_FILE__'
+
+        Host github.com
+          Hostname ssh.github.com
+          Port 443
+          User git
+        END_OF_FILE__
+
+
+network:
+  allowedDomains:
+    - ssh.github.com
