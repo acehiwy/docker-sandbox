@@ -24,8 +24,7 @@ Shell completion scripts (like `bash_completion` for NVM, SDKMAN, etc.) **will c
 
 ### Why Completions Break
 
-The persistent environment file is sourced **before every single bash command execution**, not just during shell initialization. Completion scripts rely on special variables (`COMP_WORDS`, `COMP_CWORD`, `CO
-MPREPLY`) that only exist during tab-completion contexts, not during normal command execution.
+The persistent environment file is sourced **before every single bash command execution**, not just during shell initialization. Completion scripts rely on special variables (`COMP_WORDS`, `COMP_CWORD`, `COMPREPLY`) that only exist during tab-completion contexts, not during normal command execution.
 
 ### WRONG - Will Break Bash
 
@@ -161,30 +160,7 @@ If connections are succeeding but taking much longer than expected, ask the user
 
 ### Publishing ports to the host
 
-Services running in this sandbox are not directly accessible from the host. To expose a port, the
-user must run a CLI command on the host:
-
-```bash
-sbx ports <sandbox-name> --publish [[HOST_IP:]HOST_PORT:]SANDBOX_PORT[/PROTOCOL]
-```
-
-For example, to publish a web server on port 8080:
-
-```bash
-sbx ports <sandbox-name> --publish 8080:8080/tcp
-```
-
-To list published ports:
-
-```bash
-sbx ports <sandbox-name>
-```
-
-To unpublish a port:
-
-```bash
-sbx ports <sandbox-name> --unpublish 8080:8080/tcp
-```
+Services running in this sandbox are not directly accessible from the host.
 
 **Binding address**: Services you start must listen on the `eth0` interface (not just `127.0.0.1`)
 to be reachable via port publishing. Bind to `0.0.0.0` (IPv4) or `::` (IPv6) to listen on all

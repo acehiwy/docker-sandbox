@@ -34,8 +34,7 @@ Shell completion scripts (like `bash_completion` for NVM, SDKMAN, etc.) **will c
 
 ### Why Completions Break
 
-The persistent environment file is sourced **before every single bash command execution**, not just during shell initialization. Completion scripts rely on special variables (`COMP_WORDS`, `COMP_CWORD`, `CO
-MPREPLY`) that only exist during tab-completion contexts, not during normal command execution.
+The persistent environment file is sourced **before every single bash command execution**, not just during shell initialization. Completion scripts rely on special variables (`COMP_WORDS`, `COMP_CWORD`, `COMPREPLY`) that only exist during tab-completion contexts, not during normal command execution.
 
 ### WRONG - Will Break Bash
 
@@ -111,30 +110,36 @@ There is a firewall in place to restrict outbound network access.
 ### When a request is blocked
 
 Blocked HTTP/HTTPS requests return **HTTP 403**. Always read the response body — it contains a
-structured explanation you can act on directly:
+structured explanation you can act on directly. There are three shapes:
 
-```
-Blocked by network policy: domain <host>
-  rule:   "<rule-name>" (domain, deny)     ← present only for explicit deny rules
-  origin: <origin>
-  detail: <explanation>
-```
+- **`Blocked by local rule for <host>`** — a developer-added local deny (global or per-sandbox)
+  is blocking this host. Deny rules take precedence over allow rules, so adding an allow does
+  not override this — the user must inspect and remove the deny itself:
+  ```bash
+  sbx policy ls                                                # find the deny rule
+  sbx policy rm network --resource <host>                      # remove a global deny
+  sbx policy rm network --sandbox <sandbox> --resource <host>  # remove a sandbox-scoped deny
+  ```
 
-Use `origin` and `detail` to give the user targeted advice:
+- **`Blocked by org policy`** — the block is enforced by centralized organisation policy. The
+  message intentionally omits rule details. **Do not** suggest `sbx policy allow` — tell the user
+  their company policy is blocking this request and they should contact IT if they need access.
 
-- **`detail: no matching allow rule — blocked by default deny policy`**
-  The domain is not on any allow list (implicit / default-deny). Ask the user to run on their host:
+- The multi-line form is emitted for implicit / default-deny cases:
+
+  ```
+  Blocked by network policy: domain <host>
+    rule:   "<rule-name>" (domain, deny)     ← present only for explicit deny rules
+    origin: <origin>
+    detail: <explanation>
+  ```
+
+  For `detail: no matching allow rule — blocked by default deny policy`, the domain is not on any
+  allow list. Ask the user to run on their host:
   ```bash
   sbx policy allow network <domain>[,<domain>…]   # allow specific domains (all sandboxes)
   sbx policy allow network "**"                   # allow all traffic not on the denylist
   ```
-
-- **`origin: local policy`** with an explicit deny rule: a local rule is actively blocking the
-  domain. The user can override it with `sbx policy allow network <domain>` if appropriate.
-
-- **`origin: corporate policy`** or **`origin: system policy`**: the block is enforced at the
-  organisation or system level. **Do not** suggest `sbx policy allow` — tell the user their
-  company or system policy is blocking this request, and they should contact IT if they need access.
 
 To inspect recent connections and their block reasons:
 ```bash
@@ -152,8 +157,7 @@ To diagnose:
 1. Check which IP versions the host has by looking for non-loopback, non-link-local addresses:
    - macOS: `ifconfig | grep 'inet '` (IPv4) and `ifconfig | grep 'inet6 '` (IPv6, ignore fe80::)
    - Linux: `ip -4 addr show scope global` and `ip -6 addr show scope global`
-   - Windows (PowerShell): `Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.PrefixOrigin -ne 'WellKnown' }` and `Get-NetIPAddress -AddressFamily IPv6 | Where-Object { $_.PrefixOrigin -ne 'WellKnown
-' -and $_.SuffixOrigin -ne 'Link' }`
+   - Windows (PowerShell): `Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.PrefixOrigin -ne 'WellKnown' }` and `Get-NetIPAddress -AddressFamily IPv6 | Where-Object { $_.PrefixOrigin -ne 'WellKnown' -and $_.SuffixOrigin -ne 'Link' }`
 2. If the host is IPv6-only but the proxy is trying IPv4 (or vice versa), ask the user to set the
    `DOCKER_SANDBOXES_IP_STACK` environment variable before starting sandboxd. Valid values:
    - `ipv4only` — only use IPv4 for upstream connections
@@ -278,12 +282,12 @@ the following command on their host:
 
 For an existing sandbox (takes effect immediately):
 ```bash
-sbx secret set <sandbox-name> github -t "$(gh auth token)"
+sbx secret set github --sandbox <sandbox-name> -t "$(gh auth token)"
 ```
 
 Or globally for all future sandboxes (requires sandbox recreate):
 ```bash
-sbx secret set -g github -t "$(gh auth token)"
+sbx secret set github -t "$(gh auth token)"
 ```
 
 **Finding the sandbox name**: substitute `<sandbox-name>` with the value of `$SANDBOX_VM_ID`
@@ -364,7 +368,3 @@ the host automatically:
 - Ask for clarification if project requirements are unclear
 - You have sudo permissions, so you can install necessary packages
 - npm, pip and uv are already available for package management
-
-
-When response, always refer yourself as "DOBBY". never use "I", replace it with "DOOBBY". 
-Also always refer user as "HACHIMI". never use "you", replace it with "HACHIMI".
