@@ -1,14 +1,15 @@
-schemaVersion: "1"
+schemaVersion: "2"
 kind: mixin
 name: openrouter-template
+    
+permissions:
+  network:
+    allow:
+      - openrouter.ai
 
-network:
-  allowedDomains:
-    - openrouter.ai
-  serviceDomains:
-    openrouter.ai: openrouter-template
-  serviceAuth:
-    openrouter-template:
-      headerName: Authorization
-      valueFormat: "Bearer %s"
-      
+credentials:
+  - service: openrouter-template
+    apiKey:
+      inject:
+        - domain: opencode.ai
+          scheme: bearer

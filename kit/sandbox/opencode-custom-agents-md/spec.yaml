@@ -1,4 +1,4 @@
-schemaVersion: "1"
+schemaVersion: "2"
 kind: sandbox
 name: opencode-custom-agents-md
 displayName: opencode custom agents.md
@@ -8,25 +8,24 @@ description: |
 
 sandbox:
   image: "docker/sandbox-templates:opencode-docker"
-  entrypoint:
-    run: [opencode]
+  entrypoint: [opencode]
 
-network:
-  allowedDomains:
-    - opencode.ai
-    - mcp.exa.ai # for web search tool
-  serviceDomains:
-    opencode.ai: opencode-service-id
-  serviceAuth:
-    opencode-service-id:
-      headerName: Authorization
-      valueFormat: "Bearer %s"
+permissions:
+  network:
+    allow:
+      - opencode.ai
+      - mcp.exa.ai
 
+credentials:
+  - service: opencode-service-id
+    apiKey:
+      inject:
+        - domain: opencode.ai
+          scheme: bearer
 
-commands:
+setup:
   install:
     - description: Write custom AGENTS.md
       command: |
         curl -fsSL https://raw.githubusercontent.com/acehiwy/docker-sandbox/refs/heads/main/kit/overridden-default-agents.md -o ~/.config/opencode/AGENTS.md
       user: "1000"
-      
