@@ -11,5 +11,5 @@ credentials:
   - service: openrouter-template
     apiKey:
       inject:
-        - domain: opencode.ai
+        - domain: openrouter.ai
           scheme: bearer
