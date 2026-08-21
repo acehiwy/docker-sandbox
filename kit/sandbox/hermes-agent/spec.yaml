@@ -1,0 +1,30 @@
+schemaVersion: "2"
+kind: sandbox
+name: hermes-agent
+displayName: Hermes Agent
+description: The self-improving AI agent by Nous Research — creates skills from experience, supports 200+ models via OpenRouter, and runs anywhere
+sandbox:
+  image: docker/sandbox-templates:shell-docker
+  build:
+    context: .
+    dockerfile: Dockerfile
+  entrypoint:
+    - hermes
+permissions:
+  network:
+    allow:
+      - astral.sh
+      - portal.nousresearch.com
+      - duckduckgo.com        # install.sh connectivity probe alongside pypi.org
+      
+environment:
+  variables:
+    HERMES_HOME: /home/agent/.hermes
+setup:
+  install:
+    - command: printf '#!/bin/sh\nif ! [ -f /home/agent/.hermes-installed ]; then\n  echo "Waiting for Hermes Agent installation (~3 min)..." >&2\n  until [ -f /home/agent/.hermes-installed ]; do sleep 3; done\nfi\nexec /home/agent/.local/bin/hermes "$@"\n' > /usr/local/bin/hermes-start && chmod +x /usr/local/bin/hermes-start
+      user: "0"
+      description: Create entrypoint wrapper that polls for install completion before launching hermes
+    - command: printf '#!/bin/bash\nset -e\ncurl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash -s -- --skip-setup\ntouch /home/agent/.hermes-installed\n' > /home/agent/hermes-install.sh && chmod +x /home/agent/hermes-install.sh && setsid /home/agent/hermes-install.sh > /home/agent/hermes-install.log 2>&1 &
+      user: "1000"
+      description: Install Hermes Agent via official installer in detached background session (~3 minutes; writes .hermes-installed flag on completion)
