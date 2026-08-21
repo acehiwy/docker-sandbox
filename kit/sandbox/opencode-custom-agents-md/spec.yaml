@@ -16,13 +16,6 @@ permissions:
       - opencode.ai
       - mcp.exa.ai
 
-credentials:
-  - service: opencode-service-id
-    apiKey:
-      inject:
-        - domain: opencode.ai
-          scheme: bearer
-
 setup:
   install:
     - description: Write custom AGENTS.md
