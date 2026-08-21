@@ -1,0 +1,16 @@
+schemaVersion: "2"
+kind: mixin
+name: opencode-template
+    
+permissions:
+  network:
+    allow:
+      - opencode.ai
+
+credentials:
+  - service: opencode-service-id
+    apiKey:
+      inject:
+        - domain: opencode.ai
+          header: Authorization 
+          scheme: bearer
